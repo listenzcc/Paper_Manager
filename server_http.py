@@ -6,9 +6,10 @@ HTTP server.
 import urllib.parse
 from local_profiles import profiles, logger
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from server_buffer import BUFFER_SERVER
+from worker import WORKER
 
-buffer_server = BUFFER_SERVER()
+worker = WORKER()
+
 
 class HTTP_SERVER():
     def __init__(self, host, RequestHandler):
@@ -59,8 +60,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def do_GET(self):
-        x = buffer_server.pdfs.to_json()
-        self.send_response_content('application/json', x.encode('utf-8'))
+        x = worker.open('buffer', '1-s2.0-S0028393217300593-main.pdf')
+        self.send_response_content('application/pdf', x)
 
 
 if __name__ == '__main__':

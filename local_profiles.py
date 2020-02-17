@@ -49,7 +49,7 @@ class LOGGER():
 
     def error(self, message):
         logging.error(message)
-        print(f'[ERROR]: {message}')
+        print(f'[!!!ERROR]: {message}')
 
 
 logger = LOGGER()
