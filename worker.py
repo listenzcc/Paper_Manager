@@ -23,7 +23,12 @@ class WORKER():
         logger.info('WORKER initialized.')
 
     def _get_server_(self, server):
-        """ Builtin method to get server by [server]. None for invalid [server] """
+        """
+        Builtin method to get server by [server].
+        outputs:
+            server: buffer_server or paper_server,
+                    None for invalid [server]
+        """
         if server == 'buffer':
             return self.buffer_server
         if server == 'paper':
