@@ -1,0 +1,39 @@
+<html>
+<header>
+    <meta charset="utf-8"></meta>
+    <title>Buffer Manager</title>
+    <link rel="stylesheet" href="style.css" type="text/css"></link>
+</header>
+
+<body>
+    <div class="LayoutContainer" id="pdf_area">
+        <iframe></iframe>
+    </div>
+
+    <div class="LayoutContainer" id="control_panel">
+        <div id="buffer_area">
+            <h2>Buffered Names</h2>
+            <select class="Selector" id="buffer_selection"></select>
+        </div>
+
+        <div id="paper_area">
+            <h2>Paper Keywords</h2>
+            <select class="Selector" id="paper_keywords"></select>
+        </div>
+
+        <div id="current_area">
+            <h2>Title</h2>
+            <textarea type="text" class="InputField" id="current_title"></textarea>
+            <h2>Keywords</h2>
+            <textarea type="text" class="InputField" id="current_keywords"></textarea>
+            <h2>Description</h2>
+            <textarea type="text" class="InputField" id="current_description"></textarea>
+            <h2>Commit</h2>
+            <button id="commit">Commit</button>
+            <button id="cancel">Cancel</button>
+        </div>
+    </div>
+
+</body>
+
+</html>
