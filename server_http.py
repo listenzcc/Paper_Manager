@@ -83,6 +83,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             if query == 'list':
                 names = worker.list('buffer')
                 return f'application/json; {charset}', json.dumps(names).encode()
+            if query.startswith('name='):
+                name = query[len('name='):]
+                return f'application/pdf; {charset}', worker.get('buffer', name)
         return f'text/plain; {charset}', b'Something wrong.'
 
     def do_GET(self):

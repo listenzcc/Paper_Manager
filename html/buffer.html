@@ -3,36 +3,46 @@
     <meta charset="utf-8"></meta>
     <title>Buffer Manager</title>
     <link rel="stylesheet" href="style.css" type="text/css"></link>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 </header>
 
 <body>
     <div class="LayoutContainer" id="pdf_area">
-        <iframe></iframe>
+        <iframe id="pdf_iframe"></iframe>
     </div>
 
     <div class="LayoutContainer" id="control_panel">
         <div id="buffer_area">
-            <h2>Buffered Names</h2>
-            <select class="Selector" id="buffer_selection"></select>
+            <h3>Buffered Names</h3>
+            <select class="Selector" id="buffer_names"></select>
         </div>
 
         <div id="paper_area">
-            <h2>Paper Keywords</h2>
+            <h3>Paper Keywords</h3>
             <select class="Selector" id="paper_keywords"></select>
         </div>
 
         <div id="current_area">
-            <h2>Title</h2>
+            <h3>Title</h3>
             <textarea type="text" class="InputField" id="current_title"></textarea>
-            <h2>Keywords</h2>
+            <h3>Keywords</h3>
             <textarea type="text" class="InputField" id="current_keywords"></textarea>
-            <h2>Description</h2>
+            <h3>Description</h3>
             <textarea type="text" class="InputField" id="current_description"></textarea>
-            <h2>Commit</h2>
+            <h3>Commit</h3>
             <button id="commit">Commit</button>
             <button id="cancel">Cancel</button>
+            <p class="SummaryParagraph">Title</p>
+            <label class="SummaryLabel" id="_title">Title</label>
+            <p class="SummaryParagraph">Keywords</p>
+            <label class="SummaryLabel" id="_keywords">Keywords</label>
+            <p class="SummaryParagraph">Description</p>
+            <label class="SummaryLabel" id="_description">Description</label>
         </div>
     </div>
+
+    <script src="buffer_onload.js"></script>
 
 </body>
 

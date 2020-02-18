@@ -78,14 +78,14 @@ class WORKER():
         logger.info(f'WORKER successly started {name}')
         return 0
 
-    def open(self, server, name):
+    def get(self, server, name):
         """
-        Open file by [name] of buffer or paper [server].
+        Get file by [name] of buffer or paper [server].
         inputs:
             server: 'buffer' or 'paper' means using buffer or paper server.
             name: File name to open.
         outputs:
-            Will return opened bit-stream of file indicated by [server] and [name],
+            Will return file indicated by [server] and [name] in bits,
             will return None if failed.
         """
         # Get server
@@ -102,7 +102,6 @@ class WORKER():
             pdf_bits_list = fp.readlines()
         logger.info(f'WORKER successly opened {name}')
         return b''.join(pdf_bits_list)
-        # return open(series['path'], 'rb')
 
 
 if __name__ == '__main__':
