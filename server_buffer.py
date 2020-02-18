@@ -52,7 +52,7 @@ class BUFFER_SERVER():
 
     def get_names(self):
         """Get Names from self.pdfs."""
-        return self.pdfs.index
+        return self.pdfs.index.to_list()
 
     def get_by_name(self, name):
         """
