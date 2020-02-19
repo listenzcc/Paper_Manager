@@ -2,6 +2,7 @@
 d3.json("http://localhost:8619/[buffer]?list").then(function(names) {
     init_handlers()
     update(names, 'keywords')
+    clear_currents()
     console.log("Buffer html onload success.")
 })
 
@@ -22,6 +23,16 @@ function squeeze(src) {
         des = des.replace(/,,/g, ",")
     }
     return des
+}
+
+function clear_currents() {
+    // Clear current_title, _keywords and _description.
+    document.getElementById("current_title").value = ""
+    document.getElementById("current_keywords").value = ""
+    document.getElementById("current_description").value = ""
+    d3.selectAll(".SummaryLabel")
+        .text("")
+    console.log('Currents cleared.')
 }
 
 function init_handlers() {
@@ -46,9 +57,13 @@ function init_handlers() {
 
     d3.select('#current_description')
         .on("change", function() {
-            this.value = squeeze(this.value)
+            s = squeeze(this.value)
+            this.value = s
+            if (s.length > 500) {
+                s = s.slice(0, 500) + "..."
+            }
             d3.select("#_description")
-                .text(this.value)
+                .text(s)
         })
 }
 
@@ -72,9 +87,16 @@ function update(names, keywords) {
 }
 
 function name_selection(name) {
+    // Operate when name selected.
+    // name: name selected.
+    // yield: update PDF and clear_currents
     console.log(`Select name: ${name}`)
-        // Display the paper
+
+    // Update PDF
     src = `http://localhost:8619/[buffer]?name=${name}`
     d3.select("#pdf_iframe")
         .attr("src", src)
+
+    // clear_currents
+    clear_currents()
 }
