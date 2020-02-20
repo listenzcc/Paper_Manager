@@ -103,6 +103,33 @@ class WORKER():
         logger.info(f'WORKER successly opened {name}')
         return b''.join(pdf_bits_list)
 
+    def commit(self, server_name, name, content):
+        """
+        Commit [content] into [name] using [server_name] server
+        inputs:
+            content: Contents to commit
+            name: Filename to be committed
+            server_name: Use buffer or paper server
+        outputs:
+            Return success indicator:
+            0 means successful
+            1 means failure
+            -1 means server name error
+        """
+        if server_name == 'buffer':
+            # Get server
+            server = self._get_server_(server_name)
+            # Commit
+            # Add new ignore into buffer
+            # try:
+            server.new_ignore(name)
+            logger.info(f'Commit success: name={name}, server={server_name}, content={content}')
+            return 0
+            # except:
+            #     pass
+        # It means a failure if reach here
+        logger.error(f'Something went wrong on commit to {name} using {server_name} server for {content}.')
+        return 1
 
 if __name__ == '__main__':
     worker = WORKER()

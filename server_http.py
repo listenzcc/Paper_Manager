@@ -73,29 +73,67 @@ class RequestHandler(BaseHTTPRequestHandler):
         # Parse raw path
         request = urllib.parse.urlparse(urllib.parse.unquote(self.path))
         path = request.path
-        # Ignore trivial request
-        if path == '/favicon.ico':
-            return f'text/plain; {charset}', b'Ignore the request.'
         logger.info(f'HTTP_SERVER receives {request}')
         # Response
         query = request.query
+        # Require Buffer server
         if path == '/[buffer]':
+            # Require to list file names
             if query == 'list':
                 names = worker.list('buffer')
-                return f'application/json; {charset}', json.dumps(names).encode()
+                if names is not None:
+                    return f'application/json; {charset}', json.dumps(names).encode()
+            # Require to pdf file as name
             if query.startswith('name='):
                 name = query[len('name='):]
-                return f'application/pdf; {charset}', worker.get('buffer', name)
+                bits = worker.get('buffer', name)
+                if bits is not None:
+                    return f'application/pdf; {charset}', bits
+            # Commit new pdf file
+            if query.startswith('commit&'):
+                logger.info(f'Committing {query}')
+                querys = query.split('&')
+                name = querys[1][len('name='):]
+                content = self.rfile.read(int(self.headers['content-length']))
+                success = worker.commit('buffer', name, self.parse_content(content))
+                if success == 0:
+                    return f'text/plain; {charset}', b'Commit success.'
+                else:
+                    return f'text/plain; {charset}', b'Commit Fail. Check log for further information.'
+        # It means a failure if reach here
+        logger.error(f'Something went wrong: path={path}, query={query}')
         return f'text/plain; {charset}', b'Something wrong.'
 
     def do_GET(self):
         """
         Override do_GET method to handle GET request.
         """
+        logger.info('do_GET: {}'.format(self.path))
         content_type, content = self._parse_request_()
         self.send_response_content(content_type, content)
         # x = worker.open('buffer', '1-s2.0-S0028393217300593-main.pdf')
         # self.send_response_content('application/pdf', x)
+
+    def do_POST(self):
+        """
+        Override do_POST method to handle POST request.
+        """
+        logger.info('do_POST: {}'.format(self.path))
+        content_type, content = self._parse_request_()
+        self.send_response_content(content_type, content)
+
+    def parse_content(self, content):
+        # Parse [content] from post request
+        # content: content from post request
+        content = urllib.parse.unquote(content.decode())
+        datas = dict()
+        for e in content.split('&'):
+            if not '=' in e:
+                continue
+            a, b = e.split('=', 1)
+            datas[a] = b
+        logger.info(f'Parsed content: {datas}')
+        return datas
 
 
 if __name__ == '__main__':

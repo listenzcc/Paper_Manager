@@ -3,42 +3,56 @@
     <meta charset="utf-8"></meta>
     <title>Buffer Manager</title>
     <link rel="stylesheet" href="style.css" type="text/css"></link>
+    <link rel="shortcut icon" href="data:/favicon.ico" type="image/x-icon"></link>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 </header>
 
 <body>
     <div class="LayoutContainer" id="pdf_area">
+        <!-- PDF Iframe -->
         <iframe id="pdf_iframe"></iframe>
     </div>
 
     <div class="LayoutContainer" id="control_panel">
         <div id="buffer_area">
+            <!-- Buffer selector -->
             <h3>Buffered Names</h3>
             <select class="Selector" id="buffer_names"></select>
         </div>
 
-        <div id="paper_area">
-            <h3>Paper Keywords</h3>
-            <select class="Selector" id="paper_keywords"></select>
-        </div>
-
         <div id="current_area">
+            <!-- Current Title -->
             <h3>Title</h3>
             <textarea type="text" class="InputField" id="current_title"></textarea>
+            <!-- Current Keywords -->
             <h3>Keywords</h3>
             <textarea type="text" class="InputField" id="current_keywords"></textarea>
+            <button class="KeywordsButton">Key1</button>
+            <button class="KeywordsButton">Key2</button>
+            <button class="KeywordsButton">Key3</button>
+            <!-- Current Description -->
             <h3>Description</h3>
             <textarea type="text" class="InputField" id="current_description"></textarea>
+            <button class="DescriptionButton">Idea</button>
+            <button class="DescriptionButton">Significant</button>
+            <button class="DescriptionButton">Method</button>
+            <button class="DescriptionButton">Founding</button>
+            <!-- Commit buttons -->
             <h3>Commit</h3>
             <button id="commit">Commit</button>
             <button id="cancel">Cancel</button>
-            <p class="SummaryParagraph">Title</p>
-            <label class="SummaryLabel" id="_title"></label>
-            <p class="SummaryParagraph">Keywords</p>
-            <label class="SummaryLabel" id="_keywords"></label>
-            <p class="SummaryParagraph">Description</p>
-            <label class="SummaryLabel" id="_description"></label>
+            <!-- Commit Summarys -->
+            <div>
+                <h3>Summary</h3>
+                <label class="SummaryLabel" id="_name"></label>
+                <p class="SummaryParagraph">Title</p>
+                <label class="SummaryLabel" id="_title"></label>
+                <p class="SummaryParagraph">Keywords</p>
+                <label class="SummaryLabel" id="_keywords"></label>
+                <p class="SummaryParagraph">Description</p>
+                <label class="SummaryLabel" id="_description"></label>
+            </div>
         </div>
     </div>
 
