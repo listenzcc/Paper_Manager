@@ -9,6 +9,8 @@ import logging
 SCHORLAR_DIR = os.path.join(os.environ.get('OneDrive'), 'Documents', 'schorlar')
 PAPERS_DIR = os.path.join(SCHORLAR_DIR, 'papers')
 BUFFER_DIR = os.path.join(SCHORLAR_DIR, 'buffer')
+
+HTML_DIR = os.path.join('.', 'html')
 LOGGING_PATH = os.path.join('.', 'logging.log')
 
 

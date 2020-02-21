@@ -15,6 +15,10 @@ class WORKER():
     variables:
         buffer_server: BUFFER_SERVER
         paper_server: [Not been implemented yet]
+    methods:
+        buffer_list(): Get a list of filenames in buffer_server
+        buffer_get(name, method): Get file by [name] in buffer_server using [method='open' or 'start']
+        buffer_commit(name, content): Commit file by [name] and [content] in buffer_server to paper_server
     """
 
     def __init__(self, buffer_server=BUFFER_SERVER(), paper_server=None):
@@ -22,115 +26,39 @@ class WORKER():
         self.paper_server = paper_server
         logger.info('WORKER initialized.')
 
-    def _get_server_(self, server):
-        """
-        Builtin method to get server by [server].
-        outputs:
-            server: buffer_server or paper_server,
-                    None for invalid [server]
-        """
-        if server == 'buffer':
-            return self.buffer_server
-        if server == 'paper':
-            return self.paper_server
-        logger.error(f'WORKER receive illegal server name: {server}.')
+    def buffer_list(self):
+        """ Get a list of filenames in buffer_server """
+        return self.buffer_server.get_names()
+
+    def buffer_get(self, name, method='open'):
+        """ Get file by [name] in buffer_server using [method='open' or 'start'] """
+        # method = 'open' means return bits stream
+        # method = 'start' means start the file using default app
+        server = self.buffer_server
+        # Find file
+        series = server.get_by_name(name)
+        if series is None:
+            logger.error(f'WORKER failed on find {name}')
+            return None
+        # method == 'open'
+        if method == 'open':
+            with open(series['path'], 'rb') as fp:
+                pdf_bits_list = fp.readlines()
+            logger.info(f'WORKER successly opened {name}')
+            return b''.join(pdf_bits_list)
+        # method == 'start'
+        if method == 'start':
+            os.system(series['path'])
+        logger.error(f'Invalid method {method}')
         return None
 
-    def list(self, server):
-        """
-        Return a list of names using [server]. None for fail.
-        """
-        server = self._get_server_(server)
-        if server is None:
-            return None
-        return server.get_names()
-
-    def start(self, server, name):
-        """
-        Start app for file by [name] of buffer or paper [server].
-        inputs:
-            server: 'buffer' or 'paper' means using buffer or paper server.
-            name: File name to open.
-        yields:
-            Start app for file by name.
-        outputs:
-            Will return operation successful indicator.
-            0 means success.
-            1 means name not found error.
-            2 means fail to start error.
-            -1 means server name illegal error.
-        """
-        # Get server
-        server = self._get_server_(server)
-        if server is None:
-            return -1
-        # Find file
-        series = server.get_by_name(name)
-        if series is None:
-            logger.error(f'WORKER failed on find {name}')
-            return 1
-        # Start app for file
-        try:
-            os.system(series['path'])
-        except:
-            logger.error(f'WORKER failed on start app for {name}')
-            return 2
-        logger.info(f'WORKER successly started {name}')
+    def buffer_commit(self, name, content):
+        """ Commit file by [name] and [content] in buffer_server to paper_server """
+        server = self.buffer_server
+        server.new_ignore(name)
+        logger.info(f'Commit success: name={name}, content={content}')
         return 0
-
-    def get(self, server, name):
-        """
-        Get file by [name] of buffer or paper [server].
-        inputs:
-            server: 'buffer' or 'paper' means using buffer or paper server.
-            name: File name to open.
-        outputs:
-            Will return file indicated by [server] and [name] in bits,
-            will return None if failed.
-        """
-        # Get server
-        server = self._get_server_(server)
-        if server is None:
-            return None
-        # Find file
-        series = server.get_by_name(name)
-        if series is None:
-            logger.error(f'WORKER failed on find {name}')
-            return None
-        # Open file
-        with open(series['path'], 'rb') as fp:
-            pdf_bits_list = fp.readlines()
-        logger.info(f'WORKER successly opened {name}')
-        return b''.join(pdf_bits_list)
-
-    def commit(self, server_name, name, content):
-        """
-        Commit [content] into [name] using [server_name] server
-        inputs:
-            content: Contents to commit
-            name: Filename to be committed
-            server_name: Use buffer or paper server
-        outputs:
-            Return success indicator:
-            0 means successful
-            1 means failure
-            -1 means server name error
-        """
-        if server_name == 'buffer':
-            # Get server
-            server = self._get_server_(server_name)
-            # Commit
-            # Add new ignore into buffer
-            # try:
-            server.new_ignore(name)
-            logger.info(f'Commit success: name={name}, server={server_name}, content={content}')
-            return 0
-            # except:
-            #     pass
-        # It means a failure if reach here
-        logger.error(f'Something went wrong on commit to {name} using {server_name} server for {content}.')
-        return 1
 
 if __name__ == '__main__':
     worker = WORKER()
-    worker.start('buffer', '1-s2.0-S0028393217300593-main.pdf')
+    worker.buffer_get(name='1-s2.0-S0028393217300593-main.pdf', method='start')

@@ -22,7 +22,6 @@ class BUFFER_SERVER():
 
     def __init__(self):
         self.buffer_dir = profiles.buffer_dir
-        self.ignores = ''
         self.ignores_path = os.path.join(self.buffer_dir, 'ignores.json')
         self.update()
         logger.info('BUFFER_SERVER new instance initialized.')
@@ -33,9 +32,6 @@ class BUFFER_SERVER():
         yield:
             self.ignores: DataFrame contains ignored file names.
         """
-        # If self.ignores exists, do nothing.
-        if isinstance(self.ignores, pd.DataFrame):
-            return
         # Try to read from self.ignores_path,
         # create one if not exists.
         if not os.path.exists(self.ignores_path):

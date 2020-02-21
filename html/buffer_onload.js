@@ -2,8 +2,9 @@
 init_handlers()
 clear_currents()
 
-d3.json("http://localhost:8619/[buffer]?list").then(function(names) {
+d3.json("http://localhost:62019/[buffer]?list").then(function(names) {
     update_buffer_names(names)
+    clear_currents()
 })
 
 console.log("Buffer html onload success.")
@@ -155,6 +156,12 @@ function update_buffer_names(names, keywords) {
     // names: File names in buffer server
 
     d3.select("#buffer_names")
+        .selectAll("option")
+        .remove()
+
+    names = ["----"].concat(names)
+
+    d3.select("#buffer_names")
         .on("change", function() {
             name_selection(this.value);
         })
@@ -164,6 +171,10 @@ function update_buffer_names(names, keywords) {
         .append("option")
         .attr("value", function(d) { return d; })
         .text(function(d) { return d; });
+
+    src = "http://localhost:62019/[buffer]?list"
+    d3.select("#pdf_iframe")
+        .attr("src", src)
 
     console.log("Buffered file names updated.")
 }
@@ -175,7 +186,7 @@ function name_selection(name) {
     console.log(`Select name: ${name}`)
 
     // Update PDF
-    src = `http://localhost:8619/[buffer]?name=${name}`
+    src = `http://localhost:62019/[buffer]?name=${name}`
     d3.select("#pdf_iframe")
         .attr("src", src)
 
@@ -189,6 +200,8 @@ function name_selection(name) {
 }
 
 function commit_current() {
+    document.getElementById("commit").disabled = true
+
     // Commit current contents
     name = document.getElementById("buffer_names").value
     if (name.length == 0) {
@@ -199,7 +212,7 @@ function commit_current() {
     keywords = document.getElementById("current_keywords").value
     description = document.getElementById("current_description").value
 
-    url = `http://localhost:8619/[buffer]?commit&name=${name}`
+    url = `http://localhost:62019/[buffer]?commit&name=${name}`
 
     console.log(url)
     $.post(url, {
@@ -211,5 +224,14 @@ function commit_current() {
         function(data, status) {
             console.log(`Posting to ${url}`)
             console.log("Data: " + data + "\nStatus: " + status)
-        });
+            alert(`Response: ${data}`)
+            document.getElementById("commit").disabled = false
+        },
+    );
+
+    d3.json("http://localhost:62019/[buffer]?list").then(function(names) {
+        console.log(names)
+        update_buffer_names(names)
+        clear_currents()
+    })
 }
