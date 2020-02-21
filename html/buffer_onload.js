@@ -2,7 +2,18 @@
 init_handlers()
 clear_currents()
 
-d3.json("http://localhost:62019/[buffer]?list").then(function(names) {
+server_url = "http://localhost:8612"
+buffer_list_url = `${server_url}/[buffer]?method=list`
+
+function buffer_get_url(name) {
+    return `${server_url}/[buffer]?method=get&name=${name}`
+}
+
+function buffer_commit_url(name) {
+    return `${server_url}/[buffer]?method=commit&name=${name}`
+}
+
+d3.json(buffer_list_url).then(function(names) {
     update_buffer_names(names)
     clear_currents()
 })
@@ -172,9 +183,8 @@ function update_buffer_names(names, keywords) {
         .attr("value", function(d) { return d; })
         .text(function(d) { return d; });
 
-    src = "http://localhost:62019/[buffer]?list"
     d3.select("#pdf_iframe")
-        .attr("src", src)
+        .attr("src", buffer_list_url)
 
     console.log("Buffered file names updated.")
 }
@@ -186,9 +196,8 @@ function name_selection(name) {
     console.log(`Select name: ${name}`)
 
     // Update PDF
-    src = `http://localhost:62019/[buffer]?name=${name}`
     d3.select("#pdf_iframe")
-        .attr("src", src)
+        .attr("src", buffer_get_url(name))
 
     // clear_currents
     clear_currents()
@@ -196,6 +205,8 @@ function name_selection(name) {
     // Update file name
     d3.select("#_name")
         .text(name)
+
+    document.getElementById("commit").disabled = false
 
 }
 
@@ -212,8 +223,7 @@ function commit_current() {
     keywords = document.getElementById("current_keywords").value
     description = document.getElementById("current_description").value
 
-    url = `http://localhost:62019/[buffer]?commit&name=${name}`
-
+    url = buffer_commit_url(name)
     console.log(url)
     $.post(url, {
             date: String(new Date()),
@@ -229,7 +239,7 @@ function commit_current() {
         },
     );
 
-    d3.json("http://localhost:62019/[buffer]?list").then(function(names) {
+    d3.json(buffer_list_url).then(function(names) {
         console.log(names)
         update_buffer_names(names)
         clear_currents()
