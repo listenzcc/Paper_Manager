@@ -120,12 +120,25 @@ def mk_RESP(content_type, content):
 
 def do_POST(request):
     """
-    Respond to [request] of GET
+    Respond to [request] of POST
     outputs:
         Return response
     """
+    # Default content
     content = request
     content_type = 'text/plain'
+
+    # Parse request
+    path, query = parse(request, method='POST')
+
+    # Buffer server working
+    if path == '/[buffer]':
+        # Handle commit request
+        if all([query.get('method', '') == 'commit',
+                'name' in query]):
+            worker.buffer_commit(query['name'], query)
+
+    # Parse request
     return mk_RESP(content_type, content)
 
 
@@ -135,7 +148,6 @@ def do_GET(request):
     outputs:
         Return response
     """
-
     # Default content as raw request in plain text
     content = request
     content_type = 'text/plain'
@@ -191,6 +203,17 @@ def parse(request, method='GET'):
         # Add a query
         a, b = q.split('=', 1)
         query[a] = b
+
+    # Fetch contents if on 'POST'
+    if method == 'POST':
+        contents = request.split('\r\n')[-1]
+        for q in contents.split('&'):
+            # Ignore segment without '='
+            if not '=' in q:
+                continue
+            # Add a query
+            a, b = q.split('=', 1)
+            query[a] = b
 
     # Return
     return path, query

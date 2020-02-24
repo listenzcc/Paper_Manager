@@ -233,7 +233,7 @@ function commit_current() {
     url = buffer_commit_url(name)
     console.log(url)
     $.post(url, {
-            date: String(new Date()),
+            date: (new Date()).valueOf(),
             title: title,
             keywords: keywords,
             description: description
@@ -248,9 +248,9 @@ function commit_current() {
     );
 
     // Update buffer list
-    d3.json(buffer_list_url).then(function(names) {
-        console.log(names)
-        update_buffer_names(names)
-        clear_currents()
-    })
+    // d3.json(buffer_list_url).then(function(names) {
+    //     console.log(names)
+    //     update_buffer_names(names)
+    //     clear_currents()
+    // })
 }

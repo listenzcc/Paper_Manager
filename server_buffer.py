@@ -107,7 +107,6 @@ class BUFFER_SERVER():
             logger.error(f'BUFFER_SERVER failed to get by name: {name}')
             return None
 
-
 if __name__ == '__main__':
     server = BUFFER_SERVER()
     print(server.pdfs)
