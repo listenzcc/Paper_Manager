@@ -2,6 +2,7 @@
 init_handlers()
 clear_currents()
 
+// Profiles
 server_url = "http://localhost:8612"
 buffer_list_url = `${server_url}/[buffer]?method=list`
 
@@ -13,6 +14,7 @@ function buffer_commit_url(name) {
     return `${server_url}/[buffer]?method=commit&name=${name}`
 }
 
+// Init buffer list
 d3.json(buffer_list_url).then(function(names) {
     update_buffer_names(names)
     clear_currents()
@@ -206,14 +208,18 @@ function name_selection(name) {
     d3.select("#_name")
         .text(name)
 
+    // Enable commit button if new name is selected
     document.getElementById("commit").disabled = false
 
 }
 
 function commit_current() {
+    // Commit currents
+    // Disable commit button
     document.getElementById("commit").disabled = true
 
     // Commit current contents
+    // Get current name, title, keywords and description
     name = document.getElementById("buffer_names").value
     if (name.length == 0) {
         console.log("No file selected.")
@@ -223,6 +229,7 @@ function commit_current() {
     keywords = document.getElementById("current_keywords").value
     description = document.getElementById("current_description").value
 
+    // Sent POST request
     url = buffer_commit_url(name)
     console.log(url)
     $.post(url, {
@@ -235,10 +242,12 @@ function commit_current() {
             console.log(`Posting to ${url}`)
             console.log("Data: " + data + "\nStatus: " + status)
             alert(`Response: ${data}`)
+                // Enable commit button
             document.getElementById("commit").disabled = false
         },
     );
 
+    // Update buffer list
     d3.json(buffer_list_url).then(function(names) {
         console.log(names)
         update_buffer_names(names)

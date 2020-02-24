@@ -1,176 +1,201 @@
-"""
-HTTP server.
-"""
-
-
-import json
+import socket
 import urllib.parse
-from local_profiles import profiles, logger
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import sys
+import json
+import threading
+
+from local_profiles import logger
 from worker import WORKER
 
+
+# Profiles
 worker = WORKER()
-charset = 'charset=utf-8'
+charset = 'utf-8'
 
 
-class HTTP_SERVER():
-    def __init__(self, host, RequestHandler):
-        self.server = HTTPServer(host, RequestHandler)
-        logger.info('Starting server, listen at:{}:{}'.format(*host))
-        logger.info('HTTP_SERVER initialized.')
+class WEBSERVER():
+    def __init__(self, ip='localhost', port=8612):
+        self.running = True
+        logger.info("WEBSERVER initialized.")
 
-    def start(self):
+    def run(self, ip='localhost', port=8612):
+        """ Run socket listening on [ip]:[port] """
+        # Setup socket listener
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind((ip, port))
+        sock.listen(1)
+        logger.info(f'WEBSERVER listen on {ip}:{port}')
+        # Serving
+        idx = 0
+        while self.running:
+            # Accept new connection
+            connection, client_address = sock.accept()
+            logger.info(
+                f'WEBSERVER is connected {connection} from {client_address}.')
+            # Start new thread to serve the connection
+            t = threading.Thread(target=self.serve_connection, args=(
+                connection, client_address, idx))
+            t.start()
+            # idx increase
+            idx = (idx + 1) % 65536
+
+        logger.info("WEBSERVER stopped.")
+
+    def serve_connection(self, connection, address, idx=None):
+        """
+        Method to serve [connection] of [idx] from [address].
+        """
         try:
-            logger.info('HTTP_SERVER starts.')
-            self.server.serve_forever()
-        except KeyboardInterrupt:
-            logger.warning('Key interrupt.')
+            # Fetch request
+            request = connection.recv(65536).decode()
+            length = len(request)
+            logger.info(f'WEBSERVER-{idx} receives {length} bits')
+            # Respond
+            content = self.respond(request)
+            if not isinstance(content, bytes):
+                content = content.encode()
+            length = len(content)
+            logger.info(f'WEBSERVER-{idx} responses {length} bits')
+            connection.sendall(content)
+            idx += 1
+        except:
+            logger.error(
+                f'WEBSERVER runtime error. connection={connection}, client_address={address}.')
         finally:
-            self.server.server_close()
-            logger.info('HTTP_SERVER stopped.')
+            connection.close()
+            logger.info(f'WEBSERVER-{idx} connection closed')
 
-
-def text_message(message, content_type=None):
-    """ Text message for local use """
-    if content_type is None:
-        content_type = f'text/plain; {charset}'
-    return content_type, message
-
-
-def handle_buffer_list():
-    """ Handle buffer list require """
-    names = worker.buffer_list()
-    if names is not None:
-        return f'application/json; {charset}', json.dumps(names)
-    else:
-        return text_message('Buffer list failed.')
-
-
-def handle_buffer_name(name):
-    """ Handle buffer name require, get file by [name] in buffer_server """
-    bits = worker.buffer_get(name)
-    if bits is not None:
-        return f'application/pdf; {charset}', bits
-    else:
-        return text_message(f'Buffer get {name} failed')
-
-
-def handle_buffer_commit(name, content):
-    """ Handle buffer commit require, as [name] and [content] """
-    # Parse content
-    try:
-        parsed_content = parse_content(content)
-    except:
-        return text_message(f'Parse content failed, content: {content}')
-    # Commit
-    success = worker.buffer_commit(name, parsed_content)
-    # Return
-    if success == 0:
-        return text_message('Commit Success.')
-    else:
-        return text_message('Commit Fail. Buffer server failed on commit: name={name}, content={content}')
-
-
-def parse_content(content):
-    """ Parse [content] from post request.
-        content: content from post request
-    """
-    # Resume `space`s
-    # Raw '+' is '%2B' in content, so it is safe.
-    content = content.replace(b'+', b' ')
-    # Parse using urllib
-    content = urllib.parse.unquote(content.decode())
-    # Parse content into dict
-    datas = dict()
-    for e in content.split('&'):
-        if not '=' in e:
-            continue
-        a, b = e.split('=', 1)
-        datas[a] = b
-    return datas
-
-
-class RequestHandler(BaseHTTPRequestHandler):
-    def send_response_content(self, content_type, content, allow_origin_access=True):
-        """Send response content"""
-        # Encode the content if require
-        if not isinstance(content, bytes):
-            content = content.encode('utf-8')
-        # Send 200 OK
-        code = 200
-        self.send_response(code)
-        # Allow origin access
-        if allow_origin_access:
-            self.send_header('Access-Control-Allow-Origin', '*')
-        # Send header
-        self.send_header('Content-Type', '{}'.format(content_type))
-        self.send_header('Content-Length', str(len(content)))
-        self.end_headers()
-        # Send content
-        self.wfile.write(content)
-        logger.info(f'Sent {code}, type={content_type}')
-
-    def _parse_request_(self):
+    def respond(self, request):
         """
-        Builtin method to parse request from client browser.
+        Respond to [request]
         outputs:
-            content_type: Content-Type of the response
-            content: Content of the response in bits
+            content: Content to respond
         """
-        # Parse raw path
-        request = urllib.parse.urlparse(urllib.parse.unquote(self.path))
-        path = request.path
-        logger.info(f'HTTP_SERVER receives {request}')
+        requestType = request.split('/')[0].strip()
+        request = request.replace('+', ' ')
+        request = urllib.parse.unquote(request)
 
-        if path == '/favicon.ico':
-            return text_message('NO ICON.')
+        # Handle GET and POST request
+        if requestType == 'GET':
+            return do_GET(request)
+        if requestType == 'POST':
+            return do_POST(request)
+        # Handle invalid request types
+        return mk_RESP('text/plain',
+                       f'Invalid request type [requestType]')
 
-        # Response
-        query = request.query
-        # Require Buffer server
-        if path == '/[buffer]':
-            # Require to list file names
-            if query == 'list':
-                return handle_buffer_list()
 
-            # Require to pdf file as name
-            if query.startswith('name='):
-                name = query[len('name='):]
-                return handle_buffer_name(name)
+def mk_RESP(content_type, content):
+    """
+    Make regular response from default header and,
+    [content_type] and [content].
+    """
 
-            # Commit new pdf file
-            if query.startswith('commit&'):
-                querys = query.split('&')
-                name = querys[1][len('name='):]
-                content = self.rfile.read(int(self.headers['content-length']))
-                return handle_buffer_commit(name, content)
+    def enc(src):
+        # Encode src if it is not bytes
+        if isinstance(src, bytes):
+            return src
+        else:
+            return src.encode()
 
-        # It means a failure if reach here
-        logger.error(f'Something went wrong: path={path}, query={query}')
-        return text_message('Something wrong.')
+    content = enc(content)
+    content_length = len(content)
 
-    def do_GET(self):
-        """
-        Override do_GET method to handle GET request.
-        """
-        logger.info('do_GET: {}'.format(self.path))
-        content_type, content = self._parse_request_()
-        self.send_response_content(content_type, content)
-        # x = worker.open('buffer', '1-s2.0-S0028393217300593-main.pdf')
-        # self.send_response_content('application/pdf', x)
+    # Header
+    response = ['HTTP/1.1 200 OK',
+                'Accept-Ranges: bytes',
+                'ETag: W/"269-1482321927478"',
+                'Content-Language: zh-CN']
+    # Allow origin access
+    response.append('Access-Control-Allow-Origin: *')
+    # Content-Type
+    response.append(f'Content-Type: {content_type}; charset={charset}')
+    # Content-Length
+    response.append(f'Content-Length: {content_length} \n')
+    # Content
+    response.append(content)
 
-    def do_POST(self):
-        """
-        Override do_POST method to handle POST request.
-        """
-        logger.info('do_POST: {}'.format(self.path))
-        content_type, content = self._parse_request_()
-        self.send_response_content(content_type, content)
+    return b'\n'.join([enc(e) for e in response])
+
+
+def do_POST(request):
+    """
+    Respond to [request] of GET
+    outputs:
+        Return response
+    """
+    content = request
+    content_type = 'text/plain'
+    return mk_RESP(content_type, content)
+
+
+def do_GET(request):
+    """
+    Respond to [request] of GET
+    outputs:
+        Return response
+    """
+
+    # Default content as raw request in plain text
+    content = request
+    content_type = 'text/plain'
+
+    # Parse request
+    path, query = parse(request, method='GET')
+
+    # Buffer server working
+    if path == '/[buffer]':
+        # List file names in buffer server
+        if query.get('method', '') == 'list':
+            content = json.dumps(worker.buffer_list())
+            content_type = 'application/json'
+            return mk_RESP(content_type, content)
+
+        # Get file in buffer server
+        if all([query.get('method', '') == 'get',
+                not query.get('name', '') == '']):
+            bits = worker.buffer_get(query['name'])
+            if not bits is None:
+                content_type = 'application/pdf'
+                return mk_RESP(content_type, bits)
+
+    return mk_RESP(content_type, content)
+
+
+def parse(request, method='GET'):
+    """
+    Parse request
+    inputs:
+        request: raw request
+        method: 'GET' or 'POST'
+    outputs:
+        path: Path of request, a string.
+        query: Queries of request, a dict.
+    """
+    # The format of text should be path?a=b&c=d
+    text = request[len(method):].split('HTTP')[0].strip()
+
+    # If not have query, return path and empty dict
+    if not '?' in text:
+        return text, dict()
+
+    # Fetch [path]
+    path, remains = text.split('?')
+
+    # Fetch [query]
+    query = dict()
+    for q in remains.split('&'):
+        # Ignore segment without '='
+        if not '=' in q:
+            continue
+        # Add a query
+        a, b = q.split('=', 1)
+        query[a] = b
+
+    # Return
+    return path, query
 
 
 if __name__ == '__main__':
-    domain = 'localhost'
-    port = 62019
-    host = (domain, port)
-    server = HTTP_SERVER(host, RequestHandler)
-    server.start()
+    webserver = WEBSERVER()
+    webserver.run()

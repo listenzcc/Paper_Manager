@@ -33,48 +33,54 @@ class WEBSERVER():
                 connection, client_address = sock.accept()
                 logger.info(
                     f'WEBSERVER is connected {connection} from {client_address}.')
-                _thread.start_new_thread(serve_connection, (connection, client_address, idx))
+                _thread.start_new_thread(
+                    self.serve_connection, (connection, client_address, idx))
                 idx += 1
         except KeyboardInterrupt:
             logger.warning('KeyboardInterrupted')
 
         logger.info("WEBSERVER stopped.")
 
-def respond(request):
-    """
-    Respond to [request]
-    outputs:
-        content: Content to respond
-    """
-    requestType = request.split('/')[0].strip()
-    if requestType == 'GET':
-        return do_GET(request)
-    if requestType == 'POST':
-        return do_POST(request)
-    return ''
+    def serve_connection(self, connection, address, idx=None):
+        """
+        Method to serve [connection] of [idx] from [address].
+        """
+        try:
+            # Fetch request
+            request = connection.recv(1024).decode()
+            logger.info(f'WEBSERVER-{idx} receive {request}')
+            # Respond
+            content = self.respond(request)
+            if not isinstance(content, bytes):
+                content = content.encode()
+            length = len(content)
+            logger.info(f'WEBSERVER-{idx} response {length} bits')
+            connection.sendall(content)
+            idx += 1
+        except:
+            logger.error(
+                f'WEBSERVER runtime error. connection={connection}, client_address={address}.')
+        finally:
+            connection.close()
 
+    def respond(self, request):
+        """
+        Respond to [request]
+        outputs:
+            content: Content to respond
+        """
+        requestType = request.split('/')[0].strip()
+        request = urllib.parse.unquote(request)
 
-def serve_connection(connection, address, idx=None):
-    """
-    Method to serve [connection] of [idx] from [address].
-    """
-    try:
-        # Fetch request
-        request = connection.recv(1024).decode()
-        logger.info(f'WEBSERVER-{idx} receive {request}')
-        # Respond
-        content = respond(request)
-        if not isinstance(content, bytes):
-            content = content.encode()
-        length = len(content)
-        logger.info(f'WEBSERVER-{idx} response {length} bits')
-        connection.sendall(content)
-        idx += 1
-    except:
-        logger.error(
-            f'WEBSERVER runtime error. connection={connection}, client_address={address}.')
-    finally:
-        connection.close()
+        # Handle GET and POST request
+        if requestType == 'GET':
+            return do_GET(request)
+        if requestType == 'POST':
+            return do_POST(request)
+        # Handle invalid request types
+        return mk_RESP('text/plain',
+                       f'Invalid request type [requestType]')
+
 
 def mk_RESP(content_type, content):
     """
@@ -126,8 +132,6 @@ def do_GET(request):
     outputs:
         Return response
     """
-
-    request = urllib.parse.unquote(request)
 
     # Default content as raw request in plain text
     content = request
