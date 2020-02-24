@@ -1,5 +1,6 @@
 """
-Buffer server
+Buffer server.
+Manager of buffer folder
 """
 
 import os
@@ -24,16 +25,16 @@ class BUFFER_SERVER():
         self.buffer_dir = profiles.buffer_dir
         self.ignores_path = os.path.join(self.buffer_dir, 'ignores.json')
         self.update()
-        logger.info('BUFFER_SERVER new instance initialized.')
+        logger.info('BUFFER_SERVER started.')
 
     def read_ignores(self):
         """
         Read ignores for ignored by pdf file name.
+        Try to read from self.ignores_path,
+        create one if not exists.
         yield:
             self.ignores: DataFrame contains ignored file names.
         """
-        # Try to read from self.ignores_path,
-        # create one if not exists.
         if not os.path.exists(self.ignores_path):
             self.ignores = pd.DataFrame(columns=['name'])
         else:
