@@ -94,18 +94,10 @@ class BUFFER_SERVER():
             will return None if error occurred.
         """
         # Get series by name
-        try:
-            obj = self.pdfs.loc[name]
-        except:
-            logger.error(f'BUFFER_SERVER failed to get by name: {name}')
-            return None
-        # Return series
-        if isinstance(obj, pd.Series):
-            logger.info(f'BUFFER_SERVER successly get by name: {name}')
-            return obj
-        else:
-            logger.error(f'BUFFER_SERVER failed to get by name: {name}')
-            return None
+        obj = self.pdfs.loc[name]
+        assert(isinstance(obj, pd.Series))
+        logger.info(f'BUFFER_SERVER get_by_name got: {name}')
+        return obj
 
 if __name__ == '__main__':
     server = BUFFER_SERVER()

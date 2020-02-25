@@ -6,7 +6,7 @@ Link http server and data servers (buffer and paper server).
 
 import os
 from pprint import pprint
-from local_profiles import profiles, logger
+from local_profiles import logger
 from server_buffer import BUFFER_SERVER
 from server_papers import PAPERS_SERVER
 
@@ -25,38 +25,45 @@ class WORKER():
 
     def __init__(self,
                  buffer_server=BUFFER_SERVER(),
-                 papers_server=PAPERS_SERVER(),
-                 profiles=profiles):
+                 papers_server=PAPERS_SERVER()):
         self.buffer_server = buffer_server
         self.papers_server = papers_server
-        self.profiles = profiles
         logger.info('WORKER initialized.')
 
     def buffer_list(self):
         """ Get a list of filenames in buffer_server """
-        return self.buffer_server.get_names()
+        names = []
+        try:
+            names = self.buffer_server.get_names()
+        except Exception as e:
+            logger.error(f'WORKER buffer_list failed: {e}')
+        finally:
+            return names
 
     def buffer_get(self, name, method='open'):
-        """ Get file by [name] in buffer_server using [method='open' or 'start'] """
-        # method = 'open' means return bits stream
-        # method = 'start' means start the file using default app
-        server = self.buffer_server
-        # Find file
-        series = server.get_by_name(name)
-        if series is None:
-            logger.error(f'WORKER failed on find {name}')
+        """
+        Get file by [name] in buffer_server using [method='open' or 'start']
+            method: 'open' means return bits stream
+                    'start' means start the file using default app
+        """
+        try:
+            assert(method in ['start', 'open'])
+            # Find file
+            series = self.buffer_server.get_by_name(name)
+            # method == 'open'
+            if method == 'open':
+                with open(series['path'], 'rb') as fp:
+                    pdf_bits_list = fp.readlines()
+                logger.info(f'WORKER buffer_get opened {name}')
+                return b''.join(pdf_bits_list)
+            # method == 'start'
+            if method == 'start':
+                logger.info(f'WORKER buffer_get starts {name}')
+                os.system(series['path'])
+                return None
+        except Exception as e:
+            logger.error(f'WORKER buffer_get failed: {e}')
             return None
-        # method == 'open'
-        if method == 'open':
-            with open(series['path'], 'rb') as fp:
-                pdf_bits_list = fp.readlines()
-            logger.info(f'WORKER successly opened {name}')
-            return b''.join(pdf_bits_list)
-        # method == 'start'
-        if method == 'start':
-            os.system(series['path'])
-        logger.error(f'Invalid method {method}')
-        return None
 
     def _title2fname_(self, title):
         """ Transform [title] to legal file name.
@@ -108,56 +115,36 @@ class WORKER():
         """ Handle new commit based on [name] and [content]. 
         Return 0 if success,
         return others if failed. """
-        # Profiles and basic check
-        print('name: ', name)
-        print('content: ', content)
+        # Parse [content]
         try:
             new_content = dict(
-                date=float(content['date']),
-                title=content['title'],
-                fname=self._title2fname_(content['title']),
+                date=float(content['date']),  # Commit date
+                title=content['title'],  # Title of the paper
+                fname=self._title2fname_(content['title']),  # # Legal file name of the paper
                 keywords=[e.strip() for e in content['keywords'].split(',')
-                          if e.strip()],
-                description=self._description2dict_(content['description']))
-            pass
-        except:
-            logger.error(f'Failed on parse {content}')
+                          if e.strip()],  # Keywords of the paper, list
+                description=self._description2dict_(content['description']))  # Description of the paper, dict
+            logger.info(f'WORKER buffer_commit parsed content')
+        except Exception as e:
+            logger.error(f'WORKER buffer_commit failed on parsing content: {content}, error: {e}')
             return 1
 
-        # Copy name into new_content['fname']
+        # Get pdfbits
+        pdfbits = self.buffer_get(name)
+        if pdfbits is None:
+            logger.error(f'WORKER buffer_commit failed on getting pdf file {name}')
+            return 1
+
         try:
-            with open(os.path.join(self.profiles.papers_dir, new_content['fname']), 'wb') as f:
-                pdf = self.buffer_get(name)
-                assert(pdf is not None)
-                f.write(pdf)
-        except:
-            logger.error('Failed to copy file from {src} to {des}'.
-                         format(src=name, des=new_content['fname']))
+            # Commit to papers_server
+            self.papers_server.new_commit(new_content, pdfbits)
+            # Ignore new name in buffer_server
+            self.buffer_server.new_ignore(name)
+            logger.info(f'WORKER buffer_commit committed {new_content}.')
+            return 0
+        except Exception as e:
+            logger.error(f'Worker buffer_commit failed on committing content: {new_content}, error: {e}')
             return 1
-
-        # Paper server issue
-        # Commit to papers_server
-        if not self.papers_server.new_commit(new_content) == 0:
-            logger.error('Failed to commit {new_content} to paper_server')
-            return 1
-
-        # Buffer server issue
-        # Ignore new name in buffer_server
-        self.buffer_server.new_ignore(name)
-
-        return 0
-
-        # Check all required field exist
-        if not all(['title' in content,
-                    'keywords' in content,
-                    'description' in content,
-                    'date' in content]):
-            logger.error(f'Failed on handle new commit {content}')
-            return 1
-        server = self.buffer_server
-        server.new_ignore(name)
-        logger.info(f'Commit success: name={name}, content={content}')
-        return 0
 
 
 if __name__ == '__main__':

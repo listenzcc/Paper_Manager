@@ -58,9 +58,9 @@ class WEBSERVER():
             logger.info(f'WEBSERVER-{idx} responses {length} bits')
             connection.sendall(content)
             idx += 1
-        except:
+        except Exception as e:
             logger.error(
-                f'WEBSERVER runtime error. connection={connection}, client_address={address}.')
+                f'WEBSERVER runtime error. connection={connection}, client_address={address}, error={e}')
         finally:
             connection.close()
             logger.info(f'WEBSERVER-{idx} connection closed')
@@ -136,10 +136,12 @@ def do_POST(request):
         # Handle commit request
         if all([query.get('method', '') == 'commit',
                 'name' in query]):
-            worker.buffer_commit(query['name'], query)
+            if worker.buffer_commit(query['name'], query) == 0:
+                content = 'Commit success.' + content
+                return mk_RESP(content_type, content)
 
     # Parse request
-    return mk_RESP(content_type, content)
+    return mk_RESP(content_type, 'Something is wrong.\n' + content)
 
 
 def do_GET(request):

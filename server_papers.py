@@ -7,6 +7,7 @@ Manager of organized papers
 import os
 import time
 import pandas as pd
+from pprint import pprint
 from local_profiles import profiles, logger
 
 
@@ -80,44 +81,32 @@ class PAPERS_SERVER():
         allkeywords = keywordsTrans[title]
         return [e for e in allkeywords[allkeywords == 1].index]
 
-    def new_commit(self, content):
-        """ Handle new commit based on content. 
-        Return 0 if success,
-        return others if failed. """
+    def new_commit(self, content, pdfbits):
+        """
+        Handle new commit based on [content] and [pdfbits].
+        inputs:
+            content: Contents of the paper.
+            pdfbits: The pdf file in bits.
+        """
         # Check all required field exist
-        try:
-            title = content['title']
-            fname = content['fname']
-            keywords = content['keywords']
-            date = content['date']
-            description = content['description']
-        except:
-            logger.error(f'Failed on handle new commit {content}')
-            return 1
+        title = content['title']
+        fname = content['fname']
+        keywords = content['keywords']
+        date = content['date']
+        description = content['description']
 
-        # Check title exist
-        if not os.path.exists(os.path.join(self.papers_dir, fname)):
-            logger.error(f'{fname} not exists in {self.papers_dir}')
-            return 1
+        # Write pdf file to [fname]
+        with open(os.path.join(self.papers_dir, fname), 'wb') as f:
+            f.write(pdfbits)
 
         # Update keywords
         for kw in keywords:
             self.insert_keyword(kw, title)
 
-        # Return 0 for success
-        logger.info(f'PAPERS_SERVER received {title}')
-        return 0
+        # Done
+        logger.info(f'PAPERS_SERVER received new commit of {title}')
 
 
 if __name__ == '__main__':
     server = PAPERS_SERVER()
-    server.read_keywords()
-    server.insert_keyword('a', 'abc')
-    server.insert_keyword('b', 'abc')
-    server.insert_keyword('a', 'abb')
-    server.insert_keyword('c', 'cbb')
-    server.insert_keyword('d')
-    print(server.keywords)
-    print(server.get_titles_by_keyword('a'))
-    print(server.get_titles_by_keyword('d'))
-    print(server.get_keywords_by_title('abc'))
+    pprint(server.keywords)
