@@ -157,7 +157,7 @@ def do_GET(request):
     # Parse request
     path, query = parse(request, method='GET')
 
-    # Buffer server working
+    # Buffer server workload
     if path == '/[buffer]':
         # List file names in buffer server
         if query.get('method', '') == 'list':
@@ -172,6 +172,19 @@ def do_GET(request):
             if not bits is None:
                 content_type = 'application/pdf'
                 return mk_RESP(content_type, bits)
+
+    # Papers server workload
+    if path == '/[papers]':
+        if all([query.get('method', '') == 'get',
+                not query.get('title', '') == '']):
+            paper_content = worker.papers_get_by_title(query['title'])
+            for k in ['keywords', 'descriptions']:
+                if k in paper_content:
+                    paper_content[k] = paper_content[k].to_json()
+            print(paper_content)
+            content_type = 'application/json'
+            content = json.dumps(paper_content)
+            return mk_RESP(content_type, content)
 
     return mk_RESP(content_type, content)
 

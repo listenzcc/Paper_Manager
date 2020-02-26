@@ -65,9 +65,11 @@ class BUFFER_SERVER():
         self.read_ignores()
         pdfs = pd.DataFrame()
         # Walk through folder
+        # names = [n for n in os.listdir(self.buffer_dir)
+        #          if all([n.endswith('.pdf'),
+        #                  n not in self.ignores.name.values])]
         names = [n for n in os.listdir(self.buffer_dir)
-                 if all([n.endswith('.pdf'),
-                         n not in self.ignores.name.values])]
+                 if n.endswith('.pdf')]
         paths = [os.path.join(self.buffer_dir, n) for n in names]
         pdfs['name'] = names
         pdfs['path'] = paths
@@ -87,17 +89,20 @@ class BUFFER_SERVER():
         return self.pdfs.index.to_list()
 
     def get_by_name(self, name):
-        """
-        Get entry from self.pdfs by name.
-        outputs:
-            A series containing information of name,
-            will return None if error occurred.
-        """
-        # Get series by name
-        obj = self.pdfs.loc[name]
-        assert(isinstance(obj, pd.Series))
-        logger.info(f'BUFFER_SERVER get_by_name got: {name}')
-        return obj
+        """ Get paper and its path based on [name]
+        output:
+            bits: Bitstream of the pdf file
+            fpath: Path to the pdf file """
+        # Assert we have the paper
+        assert(name in self.pdfs.index)
+        # Get fpath
+        fpath = self.pdfs['path'][name]
+        # Get bits
+        with open(fpath, 'rb') as f:
+            bits_list = f.readlines()
+        bits = b''.join(bits_list)
+        logger.info(f'BUFFER_SERVER get_by_name success on {name}')
+        return fpath, bits
 
 if __name__ == '__main__':
     server = BUFFER_SERVER()

@@ -14,6 +14,10 @@ function buffer_commit_url(name) {
     return `${server_url}/[buffer]?method=commit&name=${name}`
 }
 
+function papers_get_by_title_url(title) {
+    return `${server_url}/[papers]?method=get&title=${title}`
+}
+
 // Init buffer list
 d3.json(buffer_list_url).then(function(names) {
     update_buffer_names(names)
@@ -80,11 +84,24 @@ function init_handlers() {
 
     // Auto regulize string in current_title, current_keywords, current_description
     // current_title
+    function title_onchange() {
+        // Title onchange event
+        t = document.getElementById("current_title")
+        s = squeeze(t.value)
+        t.value = s
+
+        // Request
+        url = papers_get_by_title_url(s)
+        console.log(url)
+        d3.json(url).then(function(c) {
+            console.log(c)
+        })
+    }
+
     d3.select("#current_title")
+        // Handle onchange of #current_title
         .on("change", function() {
-            this.value = squeeze(this.value)
-            d3.select("#_title")
-                .text(this.value)
+            title_onchange()
         })
 
     // current_keywords
@@ -93,6 +110,8 @@ function init_handlers() {
         t = document.getElementById("current_keywords")
         s = squeeze(t.value) + ","
         t.value = s
+
+        // Count keywords and write them into #_keywords
         j = 0
         ss = `${j}-{`
         for (var i = 0; i < s.length; i++) {
@@ -112,6 +131,7 @@ function init_handlers() {
     }
 
     d3.selectAll(".KeywordsButton")
+        // Add new keyword into #current_keywords
         .on("click", function() {
             s = `${this.innerText}, `
             document.getElementById("current_keywords").value += s
@@ -119,6 +139,7 @@ function init_handlers() {
         })
 
     d3.select("#current_keywords")
+        // Handle onchange of #current_keywords
         .on("change", function() {
             keywords_onchange()
         })
@@ -129,6 +150,8 @@ function init_handlers() {
         t = document.getElementById("current_description")
         s = squeeze(t.value)
         t.value = s
+
+        // Count descriptions and write them to #_description
         j = 0
         ss = `${j}-`
         c = 0
@@ -152,6 +175,7 @@ function init_handlers() {
     }
 
     d3.selectAll(".DescriptionButton")
+        // Add new description into #current_description
         .on("click", function() {
             s = `\n[${this.innerText}].\n`
             document.getElementById("current_description").value += s
@@ -159,6 +183,7 @@ function init_handlers() {
         })
 
     d3.select('#current_description')
+        // Handle onchange of #current_description
         .on("change", function() {
             description_onchange()
         })
