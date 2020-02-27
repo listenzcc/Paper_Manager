@@ -173,15 +173,48 @@ def do_GET(request):
                 content_type = 'application/pdf'
                 return mk_RESP(content_type, bits)
 
+        # Parse file in buffer server
+        if all([query.get('method', '') == 'parse',
+                not query.get('name', '') == '']):
+            info = json.dumps(worker.buffer_parse(query['name']))
+            if not info is None:
+                content_type = 'application/pdf'
+                return mk_RESP(content_type, info)
+
     # Papers server workload
     if path == '/[papers]':
+        # Get all keywords
+        if query.get('method', '') == 'keywords':
+            keywords = worker.papers_server.get_keywords()
+            content_type = 'application/json'
+            content = json.dumps(keywords)
+            return mk_RESP(content_type, content)
+
+        # Get all description names
+        if query.get('method', '') == 'descriptions':
+            names = worker.papers_server.get_descriptions()
+            content_type = 'application/json'
+            content = json.dumps(names)
+            return mk_RESP(content_type, content)
+
+        # Get file by title
         if all([query.get('method', '') == 'get',
                 not query.get('title', '') == '']):
             paper_content = worker.papers_get_by_title(query['title'])
-            for k in ['keywords', 'descriptions']:
-                if k in paper_content:
-                    paper_content[k] = paper_content[k].to_json()
-            print(paper_content)
+            # If failed on getting by title,
+            # make an empty paper_content,
+            # if success, convert paper_contents values to json
+            if paper_content is None:
+                paper_content = dict(
+                    keywords=json.dumps(dict()),
+                    descriptions=json.dumps(dict()),
+                )
+                pass
+            else:
+                for k in ['keywords', 'descriptions']:
+                    if k in paper_content:
+                        paper_content[k] = paper_content[k].to_json()
+            # Return contents
             content_type = 'application/json'
             content = json.dumps(paper_content)
             return mk_RESP(content_type, content)
@@ -207,7 +240,7 @@ def parse(request, method='GET'):
         return text, dict()
 
     # Fetch [path]
-    path, remains = text.split('?')
+    path, remains = text.split('?', 1)
 
     # Fetch [query]
     query = dict()

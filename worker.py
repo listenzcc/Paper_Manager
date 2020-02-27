@@ -49,7 +49,7 @@ class WORKER():
         """
         try:
             assert(method in ['start', 'open'])
-            fpath, bits = self.buffer_server.get_by_name(name)
+            fpath, info, bits = self.buffer_server.get_by_name(name)
             if method == 'open':
                 return bits
             if method == 'start':
@@ -58,6 +58,22 @@ class WORKER():
                 return None
         except Exception as e:
             logger.error(f'WORKER buffer_get failed: {e}')
+            return None
+
+    def buffer_parse(self, name):
+        """ Parse file by [name] in buffer_server """
+        try:
+            fpath, info, bits = self.buffer_server.get_by_name(name)
+            contents = dict(title='', year='', subject='')
+            if '/Title' in info:
+                contents['title'] = info['/Title'][1:-1]
+            if '/doi' in info:
+                doi = info['/doi'][1:-1].split('/')[1]
+                contents['year'] = doi.rsplit('.', 3)[-3]
+                contents['subject'] = doi.rsplit('.', 3)[-4].split('.')[1]
+            return contents
+        except Exception as e:
+            logger.error(f'WORKER buffer_parse failed: {e}')
             return None
 
     def papers_get_by_title(self, title, fields=['keywords', 'descriptions']):

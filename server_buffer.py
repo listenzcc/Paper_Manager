@@ -6,6 +6,7 @@ Manager of buffer folder
 import os
 import time
 import pandas as pd
+from pdfrw import PdfReader
 from local_profiles import profiles, logger
 
 
@@ -97,12 +98,13 @@ class BUFFER_SERVER():
         assert(name in self.pdfs.index)
         # Get fpath
         fpath = self.pdfs['path'][name]
+        info = PdfReader(fpath).Info
         # Get bits
         with open(fpath, 'rb') as f:
             bits_list = f.readlines()
         bits = b''.join(bits_list)
         logger.info(f'BUFFER_SERVER get_by_name success on {name}')
-        return fpath, bits
+        return fpath, info, bits
 
 if __name__ == '__main__':
     server = BUFFER_SERVER()
