@@ -18,6 +18,14 @@ h3 {
     width: 100%;
 }
 
+.KeywordsButton {
+    margin: 2px
+}
+
+.DescriptionsButton {
+    margin: 2px
+}
+
 .SummaryParagraph {
     margin: 2px
 }

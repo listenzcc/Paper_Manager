@@ -255,12 +255,14 @@ def parse(request, method='GET'):
     # Fetch contents if on 'POST'
     if method == 'POST':
         contents = request.split('\r\n')[-1]
-        for q in contents.split('&'):
+        for q in contents.split('&kkk'):
             # Ignore segment without '='
             if not '=' in q:
                 continue
             # Add a query
             a, b = q.split('=', 1)
+            if a.startswith('kkk'):
+                a = a[3:]
             query[a] = b
 
     # Return

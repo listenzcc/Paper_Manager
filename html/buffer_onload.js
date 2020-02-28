@@ -31,6 +31,31 @@ function papers_get_by_title_url(title) {
     return `${server_url}/[papers]?method=get&title=${title}`
 }
 
+// Init displays
+init_displays()
+
+function init_displays() {
+    console.log('init_displays')
+    d3.select("#current_title_checkbox")
+        .on("change", function() {
+            document.getElementById("current_title_container").hidden = !this.checked
+        })
+    d3.select("#current_keywords_checkbox")
+        .on("change", function() {
+            document.getElementById("current_keywords_container").hidden = !this.checked
+        })
+    d3.select("#current_descriptions_checkbox")
+        .on("change", function() {
+            document.getElementById("current_descriptions_container").hidden = !this.checked
+        })
+
+    d3.select("#current_title_logo")
+        .on("click", function() {
+            d = document.getElementById("current_title_checkbox")
+            d.checked = !d.checked
+        })
+}
+
 // Init buffer, keywords and descriptions
 update_buffer_names()
 update_keywords()
@@ -68,6 +93,13 @@ function update_keywords() {
                 document.getElementById("current_keywords").value += s
                 keywords_onchange()
             })
+            // Adding enhancement when mouseover
+            .on("mouseover", function() {
+                this.style.transform = ("scale(1.2, 1.2)")
+            })
+            .on("mouseout", function() {
+                this.style.transform = ("")
+            })
     })
 }
 
@@ -96,6 +128,13 @@ function update_descriptions() {
                 s = `.[${this.innerText}].`
                 document.getElementById("current_descriptions").value += s
                 descriptions_onchange()
+            })
+            // Adding enhancement when mouseover
+            .on("mouseover", function() {
+                this.style.transform = ("scale(1.2, 1.2)")
+            })
+            .on("mouseout", function() {
+                this.style.transform = ("")
             })
     })
 }
@@ -231,13 +270,13 @@ function name_selection(name) {
     // clear_currents
     clear_currents()
 
-    // Update file name
-    d3.select("#_name")
-        .text(name)
-
     // Parse name
     d3.json(buffer_parse_url(name)).then(function(info) {
         console.log(info)
+        document.getElementById("current_title").value = info.title
+        d3.select("#_doi")
+            .text(info.doi)
+        title_onchange()
     })
 
     // Enable commit button if new name is selected
@@ -266,10 +305,11 @@ function commit_current() {
     url = buffer_commit_url(name)
     console.log(url)
     $.post(url, {
-            date: (new Date()).valueOf(),
-            title: title,
-            keywords: keywords,
-            description: description
+            // kkkxxxx: kkk is prefix to note keyword, xxxx is the keyword
+            kkkdate: (new Date()).valueOf(),
+            kkktitle: title,
+            kkkkeywords: keywords,
+            kkkdescription: description
         },
         function(data, status) {
             console.log(`Posting to ${url}`)
@@ -324,8 +364,10 @@ function keywords_onchange() {
 function title_onchange() {
     // Title onchange event
     t = document.getElementById("current_title")
-    s = squeeze(t.value)
-    t.value = s
+    title = squeeze(t.value)
+    t.value = title
+    d3.select("#_title")
+        .text(title)
 
     // Parse [s] using JSON
     // Return keys and dict
@@ -344,9 +386,8 @@ function title_onchange() {
         }
     }
 
-    // Request
-    url = papers_get_by_title_url(s)
-    console.log(url)
+    // Try to request contents by title: [title]
+    url = papers_get_by_title_url(title)
     d3.json(url).then(function(contents) {
         // Parse contents
         [keywords, k] = get_keys(contents['keywords']);

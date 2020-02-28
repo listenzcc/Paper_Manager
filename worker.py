@@ -64,13 +64,12 @@ class WORKER():
         """ Parse file by [name] in buffer_server """
         try:
             fpath, info, bits = self.buffer_server.get_by_name(name)
-            contents = dict(title='', year='', subject='')
+            contents = dict(title='', doi='')
             if '/Title' in info:
                 contents['title'] = info['/Title'][1:-1]
             if '/doi' in info:
                 doi = info['/doi'][1:-1].split('/')[1]
-                contents['year'] = doi.rsplit('.', 3)[-3]
-                contents['subject'] = doi.rsplit('.', 3)[-4].split('.')[1]
+                contents['doi'] = doi
             return contents
         except Exception as e:
             logger.error(f'WORKER buffer_parse failed: {e}')
@@ -84,8 +83,13 @@ class WORKER():
             None if failed.
         """
         try:
-            paper_contents = self.papers_server.get_by_title(title, fields=fields)
+            paper_contents = self.papers_server.get_by_title(
+                title, fields=fields)
             return paper_contents
+        except AssertionError as e:
+            logger.warning(
+                f'WORKER papers_get_by_title cannot get not existing title: {title}.')
+            return None
         except Exception as e:
             logger.error(f'WORKER papers_get_by_title failed: {e}')
             return None
@@ -152,7 +156,8 @@ class WORKER():
             new_content = dict(
                 timestamp=float(content['date']) / 1000,  # Commit timestamp
                 title=content['title'],  # Title of the paper
-                keywords=[e.strip() for e in content['keywords'].split(',')
+                keywords=[e.strip().title()
+                          for e in content['keywords'].split(',')
                           if e.strip()],  # Keywords of the paper, list
                 descriptions=self._description2dict_(content['description']))  # Descriptions of the paper, dict
             logger.info(f'WORKER buffer_commit parsed content')

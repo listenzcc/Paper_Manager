@@ -18,22 +18,31 @@
             <!-- Buffer selector -->
             <h3>Buffered Names</h3>
             <select class="Selector" id="buffer_names"></select>
+            <input type="checkbox" class="CheckBox" id="current_title_checkbox" checked> Title
+            <input type="checkbox" class="CheckBox" id="current_keywords_checkbox" checked> Keywords
+            <input type="checkbox" class="CheckBox" id="current_descriptions_checkbox" checked> Descriptions
         </div>
 
         <div id="current_area">
             <!-- Current Title -->
-            <h3>Title</h3>
-            <textarea type="text" class="InputField" id="current_title"></textarea>
+            <h3 id="current_title_logo">Title</h3>
+            <div class="CurrentsContainer" id="current_title_container">
+                <textarea type="text" class="InputField" id="current_title"></textarea>
+            </div>
 
             <!-- Current Keywords -->
-            <h3>Keywords</h3>
-            <textarea type="text" class="InputField" id="current_keywords"></textarea>
-            <div class="ButtonsContainer" id="keyword_buttons"></div>
+            <h3 id="current_keywords_logo">Keywords</h3>
+            <div class="CurrentsContainer" id="current_keywords_container">
+                <textarea type="text" class="InputField" id="current_keywords"></textarea>
+                <div class="ButtonsContainer" id="keyword_buttons"></div>
+            </div>
 
             <!-- Current Description -->
-            <h3>Description</h3>
-            <textarea type="text" class="InputField" id="current_descriptions"></textarea>
-            <div class="ButtonsContainer" id="description_buttons"></div>
+            <h3 id="current_description_logo">Descriptions</h3>
+            <div class="CurrentsContainer" id="current_descriptions_container">
+                <textarea type="text" class="InputField" id="current_descriptions"></textarea>
+                <div class="ButtonsContainer" id="description_buttons"></div>
+            </div>
 
             <!-- Commit buttons -->
             <h3>Commit</h3>
@@ -43,7 +52,8 @@
             <!-- Commit Summarys -->
             <div>
                 <h3>Summary</h3>
-                <label class="SummaryLabel" id="_name"></label>
+                <p class="SummaryParagraph">DOI</p>
+                <label class="SummaryLabel" id="_doi"></label>
                 <p class="SummaryParagraph">Title</p>
                 <label class="SummaryLabel" id="_title"></label>
                 <p class="SummaryParagraph">Keywords</p>
