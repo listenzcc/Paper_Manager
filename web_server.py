@@ -3,7 +3,6 @@ import urllib.parse
 import sys
 import json
 import threading
-
 from local_profiles import logger
 from worker import WORKER
 
