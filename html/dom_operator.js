@@ -100,7 +100,7 @@ function update_descriptions() {
             .text(function(d) { return d; })
             // Handle 'click' event
             .on("click", function() {
-                s = `.[${this.innerText}].`
+                s = `## ${this.innerText}`
                 document.getElementById("current_descriptions").value += s
                 descriptions_onchange()
             })
