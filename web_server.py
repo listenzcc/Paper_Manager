@@ -139,6 +139,14 @@ def do_POST(request):
                 content = 'Commit success.' + content
                 return mk_RESP(content_type, content)
 
+    # Worker working
+    if path == '/[worker]':
+        # Handle edit request
+        if query.get('method') == 'edit':
+            print(query)
+            content = json.dumps(worker.edit_currents(query))
+            return mk_RESP(content_type, content)
+
     # Parse request
     return mk_RESP(content_type, 'Something is wrong.\n' + content)
 

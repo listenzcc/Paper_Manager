@@ -121,15 +121,15 @@ class WORKER():
         desDict = dict()
 
         # Split description
-        des = [e.strip() for e in description.split('\n') if e.strip()]
+        des = [e.strip() for e in description.split('\n')]
 
         # Starts with 'Default' key with an empty list
         k = 'Default'
         desDict[k] = []
         for d in des:
-            if all([d.startswith('['), d.endswith('].')]):
+            if d.startswith('##'):
                 # Meet a key, use it
-                k = d[1:-2]
+                k = d[2:].strip().title()
                 # If the key not exists, create an empty list for it
                 if k not in desDict:
                     desDict[k] = []
@@ -159,7 +159,7 @@ class WORKER():
                 keywords=[e.strip().title()
                           for e in content['keywords'].split(',')
                           if e.strip()],  # Keywords of the paper, list
-                descriptions=self._description2dict_(content['description']))  # Descriptions of the paper, dict
+                descriptions=self._description2dict_(content['descriptions']))  # Descriptions of the paper, dict
             logger.info(f'WORKER buffer_commit parsed content')
         except Exception as e:
             logger.error(
@@ -184,6 +184,25 @@ class WORKER():
             logger.error(
                 f'Worker buffer_commit failed on committing content: {new_content}, error: {e}')
             return 1
+
+    def edit_currents(self, query):
+        """ Handle edit_currents request. """
+        tmpfname = 'tmp.md'
+        with open(tmpfname, 'w') as f:
+            f.writelines(['# {title}\n\n'.format(**query),
+                          '## Keywords\n{keywords}\n\n'.format(**query),
+                          '{descriptions}'.format(**query)])
+        os.system(f'code.cmd -w -n {tmpfname}')
+        keywords = 'keywords'
+        descriptions = 'descriptions'
+        with open(tmpfname, 'r') as f:
+            lines = f.readlines()
+        title = lines[0][1:].strip()
+        keywords = lines[4].strip()
+        descriptions = ''.join(lines[5:]).strip()
+        return dict(title=title,
+                    keywords=keywords,
+                    descriptions=descriptions)
 
 
 if __name__ == '__main__':

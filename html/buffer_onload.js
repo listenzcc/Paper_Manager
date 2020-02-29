@@ -20,6 +20,12 @@ function init_handlers() {
             commit_currents()
         })
 
+    // Handle click of edit button
+    d3.select("#edit")
+        .on("click", function() {
+            edit_currents()
+        })
+
     // Handle onchange of #current_title
     d3.select("#current_title")
         .on("change", function() {
