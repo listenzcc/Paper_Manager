@@ -39,7 +39,7 @@ function init_handlers() {
         })
 
     // Handle onchange of CheckBox
-    d3.select('.CheckBox')
+    d3.selectAll('.ContainerCheckBox')
         .on("change", function() {
             toggle_displays()
         })

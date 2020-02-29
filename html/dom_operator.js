@@ -130,6 +130,8 @@ function clear_currents() {
 // toggle visibility of containers
 // based on checkboxes
 function toggle_displays() {
+    console.log('--')
+
     // Toggle title containers
     document.getElementById("current_title_container").hidden = !document.getElementById("current_title_checkbox").checked
 
