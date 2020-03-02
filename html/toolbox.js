@@ -36,61 +36,55 @@ function papers_get_by_title_url(title) {
     return `${server_url}/[papers]?method=get&title=${title}`
 }
 
-// Method for regularize [src] string
-function squeeze(src) {
-    // Change each "\n" into space.
-    des = src.replace(/\n/g, " ")
+// todo: Add squeeze method for regularize paper title
+// Add trim method for String class
+// if (typeof(String.prototype.trim) === "undefined") {
+String.prototype.trim = function() {
+    return String(this).replace(/^\s+|\s+$/g, '');
+};
 
-    // Remove leading spaces
-    while (des.startsWith(" ")) {
-        des = des.slice(1)
-    }
-
-    // Squeeze double-spaces
-    // while (des.includes("  ")) {
-    //     des = des.replace(/  /g, " ")
-    // }
-    des = des.replace(/\s{1,}/g, " ")
-
-    // Delete space around each ",", ":" and ".".
-    des = des.replace(/\s{0,},\s{0,}/g, ",")
-    des = des.replace(/\s{0,}\.\s{0,}/g, ".")
-    des = des.replace(/\s{0,}:\s{0,}/g, ":")
-
-    // Stack i.e.
-    des = des.replace(/i\.e\./g, "---ie---")
-    des = des.replace(/et al\./g, "---etal---")
-    des = des.replace(/e\.g\./g, "---eg---")
-
-    // Add space after "," and ":"
-    des = des.replace(/,/g, ", ").replace(/:/g, ": ")
-
-    // Add "\n" after "."
-    des = des.replace(/\./g, "\.\n")
-
-    // Resume i.e.
-    des = des.replace(/---ie---/g, "i.e. ")
-    des = des.replace(/---etal---/g, "et al. ")
-    des = des.replace(/---eg---/g, "e.g. ")
-
-    return des
-}
-
-function format_title(src) {
-    des = ""
-    isUp = true
-    for (var i = 0; i < src.length; i++) {
-        if (isUp) {
-            des += src[i].toUpperCase()
-            isUp = false
+// Add toTitleCase method for String class
+String.prototype.toTitleCase = function() {
+    s = String(this).trim().toLowerCase()
+    d = ""
+    up = true
+    for (var i = 0; i < s.length; i++) {
+        if (up) {
+            d += s[i].toUpperCase()
+            up = false
         } else {
-            des += src[i]
+            d += s[i]
         }
-        if (src[i] == " ") {
-            isUp = true
+        if (s[i] == " ") {
+            up = true
         }
     }
-    return des
+    return d
+};
+
+// Method for regularize words splits,
+// line up [src] and split words with commas
+function words_split(src) {
+    // Convert "\n"s into ","s
+    src = src.replace(/\n/g, ",")
+
+    // Convert "\s"s into spaces
+    src = src.replace(/\s/g, " ")
+
+    // Remove multiple-spaces
+    src = src.replace(/\s{1,}/g, " ")
+
+    // Split words
+    words = src.split(",")
+
+    des = ""
+    for (var i = 0; i < words.length; i++) {
+        des += words[i].toTitleCase()
+        des += ", "
+    }
+
+    return des.slice(0, -2)
+
 }
 
 console.log('toolbox invite success.')

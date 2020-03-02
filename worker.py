@@ -98,7 +98,7 @@ class WORKER():
         """ Get all the keywords from papers_server """
         try:
             keywords = self.papers_server.get_keywords()
-            return [e for e in keywords]
+            return sorted([e for e in keywords])
         except Exception as e:
             logger.error(f'WORKER papers_get_keywords failed: {e}')
             return None
@@ -107,7 +107,7 @@ class WORKER():
         """ Get all the description names from papers_server """
         try:
             names = self.papers_server.get_descriptions()
-            return [e for e in names]
+            return sorted([e for e in names])
         except Exception as e:
             logger.error(f'WORKER papers_get_descriptions failed: {e}')
             return None
@@ -190,7 +190,7 @@ class WORKER():
         tmpfname = 'tmp.md'
         with open(tmpfname, 'w') as f:
             f.writelines(['# {title}\n\n'.format(**query),
-                          '## Keywords\n{keywords}\n\n'.format(**query),
+                          '## Keywords\n\n{keywords}\n\n'.format(**query),
                           '{descriptions}'.format(**query)])
         os.system(f'code.cmd -w -n {tmpfname}')
         keywords = 'keywords'

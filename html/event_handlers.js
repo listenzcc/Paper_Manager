@@ -118,15 +118,8 @@ function name_selection(name) {
 function keywords_onchange() {
     // Keywords onchange event
     t = document.getElementById("current_keywords")
-    v = t.value.replace(/\n/g, ",")
-
-    v = squeeze(v)
-    v = format_title(v)
+    v = words_split(t.value)
     t.value = v
-
-    if (v.endsWith(", "))[
-        v = v.slice(0, -2)
-    ]
 
     keywords = v.split(", ")
     str = ""
@@ -192,59 +185,9 @@ function title_onchange() {
 
 // Descriptions onchange handler
 function descriptions_onchange() {
-
-    function good_descriptions(src) {
-        if (src.length == 0) {
-            return src
-        }
-
-        // dess is a list contains names and contents of descriptions
-        dess = [""]
-
-        // Parse src, seperate names (##) and contents
-        srcs = src.split("\n")
-        for (var i = 0; i < srcs.length; i++) {
-            if (srcs[i].startsWith("##")) {
-                dess[dess.length] = format_title(srcs[i])
-                dess[dess.length] = ""
-            } else if (srcs[i].length == 0) {
-                dess[dess.length - 1] += "<br>"
-            } else {
-                dess[dess.length - 1] += srcs[i] + "\n"
-            }
-        }
-
-        // Remove first and last element if it is null
-        if (dess[0] == "") {
-            dess = dess.slice(1)
-        }
-        if (dess[dess.length - 1] == "") {
-            dess = dess.slice(0, -1)
-        }
-
-        // Restore dess into des
-        des = ""
-        for (var i = 0; i < dess.length; i++) {
-            if (dess[i].startsWith("##")) {
-                des += dess[i] + "\n"
-            } else {
-                des += squeeze(dess[i]) + "\n"
-            }
-        }
-
-        des = des.replace(/<br>\n/g, "\n")
-        des = des.replace(/<br>/g, "\n")
-        while (des.endsWith("\n\n")) {
-            des = des.slice(0, -1)
-        }
-
-        return des
-    }
-
     // Keywords onchange event
     t = document.getElementById("current_descriptions")
-    s = good_descriptions(t.value)
-    t.value = s
+    console.log(t.value)
 
     d3.select("#_descriptions")
         .text(new Date)

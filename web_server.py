@@ -143,7 +143,6 @@ def do_POST(request):
     if path == '/[worker]':
         # Handle edit request
         if query.get('method') == 'edit':
-            print(query)
             content = json.dumps(worker.edit_currents(query))
             return mk_RESP(content_type, content)
 
@@ -192,14 +191,14 @@ def do_GET(request):
     if path == '/[papers]':
         # Get all keywords
         if query.get('method', '') == 'keywords':
-            keywords = worker.papers_server.get_keywords()
+            keywords = worker.papers_get_keywords()
             content_type = 'application/json'
             content = json.dumps(keywords)
             return mk_RESP(content_type, content)
 
         # Get all description names
         if query.get('method', '') == 'descriptions':
-            names = worker.papers_server.get_descriptions()
+            names = worker.papers_get_descriptions()
             content_type = 'application/json'
             content = json.dumps(names)
             return mk_RESP(content_type, content)
