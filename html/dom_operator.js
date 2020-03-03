@@ -100,7 +100,7 @@ function update_descriptions() {
             .text(function(d) { return d; })
             // Handle 'click' event
             .on("click", function() {
-                s = `## ${this.innerText}`
+                s = `## ${this.innerText}\n\n`
                 document.getElementById("current_descriptions").value += s
                 descriptions_onchange()
             })
@@ -116,7 +116,7 @@ function update_descriptions() {
 
 // Clear currents
 // clear current_title, current_keywords and current_description
-// clear .SummayrLabel
+// clear .SummaryLabel
 function clear_currents() {
     document.getElementById("current_title").value = ""
     document.getElementById("current_keywords").value = ""

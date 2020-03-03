@@ -12,7 +12,7 @@ console.log("Buffer html onload success.")
 
 // Initialize handlers
 // Add handle to commit button
-// Auto regulize string in current_title, current_keywords, current_description when they are changed
+// Auto regulate string in current_title, current_keywords, current_description when they are changed
 function init_handlers() {
     // Handle click of commit button
     d3.select("#commit")
@@ -50,7 +50,7 @@ function init_handlers() {
             toggle_displays()
         })
 
-    // Toogle checkboxes
+    // Toggle checkboxes
     d3.select("#current_title_logo")
         .on("click", function() {
             d = document.getElementById("current_title_checkbox")

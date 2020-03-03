@@ -114,7 +114,7 @@ class WORKER():
 
     def _description2dict_(self, description):
         """ Transform [description] into dict.
-        It is a finite state machine to walk throught description.
+        It is a finite state machine to walk through description.
         outputs:
             A dict contains descriptions """
         # Init desDict as dict
@@ -145,6 +145,10 @@ class WORKER():
         if desDict['Default'] == '':
             desDict.pop('Default')
 
+        # Add 'Default' back if it is empty
+        if len(desDict) == 0:
+            desDict['Default'] = ''
+
         return desDict
 
     def buffer_commit(self, name, content):
@@ -161,6 +165,7 @@ class WORKER():
                           if e.strip()],  # Keywords of the paper, list
                 descriptions=self._description2dict_(content['descriptions']))  # Descriptions of the paper, dict
             logger.info(f'WORKER buffer_commit parsed content')
+            print(new_content)
         except Exception as e:
             logger.error(
                 f'WORKER buffer_commit failed on parsing content: {content}, error: {e}')

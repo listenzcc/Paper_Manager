@@ -23,7 +23,7 @@ function edit_currents() {
         },
 
         // Handle response
-        function(data, status) {
+        function (data, status) {
             console.log(`Posting to ${url}`)
             console.log("Data: " + data + "\nStatus: " + status)
             alert(`Response: ${data}`)
@@ -71,11 +71,11 @@ function commit_currents() {
             kkkdescriptions: descriptions
         },
         // Handle response
-        function(data, status) {
+        function (data, status) {
             console.log(`Posting to ${url}`)
             console.log("Data: " + data + "\nStatus: " + status)
             alert(`Response: ${data}`)
-                // Enable commit button
+            // Enable commit button
             document.getElementById("commit").disabled = false
         },
     );
@@ -102,7 +102,7 @@ function name_selection(name) {
     clear_currents()
 
     // Parse name
-    d3.json(buffer_parse_url(name)).then(function(info) {
+    d3.json(buffer_parse_url(name)).then(function (info) {
         console.log(info)
         document.getElementById("current_title").value = info.title
         d3.select("#_doi")
@@ -124,7 +124,20 @@ function keywords_onchange() {
     keywords = v.split(", ")
     str = ""
     for (i = 0; i < keywords.length; i++) {
-        str += `${i}-{${keywords[i]}}, `
+        k = keywords[i]
+        if (k.length > 0) {
+            str += `${i}-{${k}}, `
+        }
+    }
+    buttons = document.getElementsByClassName("KeywordsButton")
+    for (i = 0; i < buttons.length; i++) {
+        b = buttons[i]
+        if (keywords.includes(b.value)) {
+            b.style.transform = ("scale(1.0, 1.0)")
+            b.disabled = true
+        } else {
+            b.disabled = false
+        }
     }
     d3.select("#_keywords")
         .text(str)
@@ -139,30 +152,15 @@ function title_onchange() {
     d3.select("#_title")
         .text(title)
 
-    // Parse [s] using JSON
-    // Return keys and dict
-    // keys: keys of dict
-    // dict: whole dict
-    function get_keys(s) {
-        try {
-            dict = JSON.parse(s)
-            keys = Object.keys(dict)
-            return [keys, dict]
-        } catch (error) {
-            return [
-                [],
-                []
-            ]
-        }
-    }
-
     // Try to request contents by title: [title]
     url = papers_get_by_title_url(title)
-    d3.json(url).then(function(contents) {
+    d3.json(url).then(function (contents) {
         // Parse contents
-        [keywords, k] = get_keys(contents['keywords']);
-        [descriptions, d] = get_keys(contents['descriptions'])
+        console.log(contents)
+        keywords = Object.keys(JSON.parse(contents['keywords']))
         console.log("Keywords: " + keywords)
+        description_dict = JSON.parse(contents['descriptions'])
+        descriptions = Object.keys(description_dict)
         console.log("Descriptions: " + descriptions)
 
         // Update keywords
@@ -177,7 +175,7 @@ function title_onchange() {
         for (var i = 0; i < descriptions.length; i++) {
             k = descriptions[i]
             document.getElementById("current_descriptions").value += '## ' + k + "\n"
-            document.getElementById("current_descriptions").value += d[k] + "\n"
+            document.getElementById("current_descriptions").value += description_dict[k] + "\n"
         }
         descriptions_onchange()
     })
